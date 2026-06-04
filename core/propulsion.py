@@ -14,21 +14,13 @@ class HomeosPropulsion:
         """
         self.r_core = target_radius
         self.mu_0 = 4 * math.pi * 1e-7  # Permeability of free space (H/m)
-        logger.info(f"Propulsion Controller initialized with core boundary constraint: {self.r_core} meters.")
+        logger.info(f"Propulsion Controller online. Core boundary parameter fixed at: {self.r_core} meters.")
 
     def calculate_ideal_thrust(self, current, ambient_flux_b0):
         """
         Executes the closed-form definite integral analytical solution derived in VAL-ANALYTICAL-001.
-        Assumes an idealized boundary condition where flux density falls to zero at r = r_core.
         
         Formula: F = (2/3) * I * B_0 * R_c
-        
-        Parameters:
-            current (float): Active channel injection current (Amperes).
-            ambient_flux_b0 (float): Peak central magnetic flux density (Tesla).
-            
-        Returns:
-            float: Theoretical integrated radial containment force vector in Newtons.
         """
         if current <= 0.0 or ambient_flux_b0 <= 0.0:
             return 0.0
@@ -38,19 +30,11 @@ class HomeosPropulsion:
 
     def execute_numerical_solver(self, current, ambient_flux_b0, intervals=1001):
         """
-        Computes the real-time force integration across a discrete grid mesh using 
-        Simpson's Rule to cross-check computational twin scaling behavior against theory.
-        
-        Parameters:
-            current (float): Active channel injection current (Amperes).
-            ambient_flux_b0 (float): Peak central magnetic flux density (Tesla).
-            intervals (int): Number of discrete grid sample nodes (must be odd).
-            
-        Returns:
-            dict: Core metrics detailing numerical force, analytical targets, and absolute error delta.
+        Computes real-time force integration across a discrete grid mesh using 
+        Simpson's Rule to cross-check computational scaling errors against theory.
         """
         if intervals % 2 == 0:
-            intervals += 1  # Simpson's rule requires an odd number of intervals
+            intervals += 1  # Simpson's composite rule requires an odd number of node points
             
         if current <= 0.0 or ambient_flux_b0 <= 0.0:
             return {"numerical_force_n": 0.0, "error_percentage": 0.0, "status": "IDLE"}
@@ -58,15 +42,15 @@ class HomeosPropulsion:
         dr = self.r_core / (intervals - 1)
         forces = []
         
-        # Calculate local differential force vectors across the spatial matrix slices
+        # 1. Map local differential force vectors across spatial coordinate matrices
         for i in range(intervals):
             r = i * dr
-            # Local field profile calculation: B(r) = B_0 * (1 - (r^2 / R_c^2))
+            # Local field profile expression: B(r) = B_0 * (1 - (r^2 / R_c^2))
             b_local = ambient_flux_b0 * (1.0 - (r ** 2 / self.r_core ** 2))
             # dF = I * B(r)
             forces.append(current * b_local)
             
-        # Execute discrete Simpson composite integration
+        # 2. Execute discrete Simpson composite integration loop
         numerical_integral = forces[0] + forces[-1]
         for i in range(1, intervals - 1):
             if i % 2 == 1:
@@ -77,7 +61,7 @@ class HomeosPropulsion:
         numerical_integral = (dr / 3.0) * numerical_integral
         analytical_target = self.calculate_ideal_thrust(current, ambient_flux_b0)
         
-        # Determine strict percentage error deviation margin
+        # 3. Assess numerical convergence drift boundaries
         error_percentage = abs((numerical_integral - analytical_target) / analytical_target) * 100.0
         status = "VERIFIED_COMPUTATIONAL_PASS" if error_percentage <= 0.001 else "CONVERGENCE_FAIL"
         
