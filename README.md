@@ -68,8 +68,7 @@ The `Homeos` project redefines high-energy physical systems by integrating a res
 
 ***
 
-**Built for high-efficiency thermodynamic scavenging.**
+**Built for high-efficiency scavenging.**
 
 ***
 
-**Built for high-efficiency thermodynamic scavenging.**
