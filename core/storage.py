@@ -1,83 +1,87 @@
-import json
-import os
-import math
-from core.init_matrix import HomeosMatrixScaler
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("HomeosStorage")
 
 class HomeosStorage:
-    def __init__(self, tier_profile="tier_1_micro"):
+    def __init__(self):
         """
-        Initializes the scalable molten-salt storage matrix.
+        Initializes the Thermal Storage Manager.
+        Tracks localized energy states relative to molten-salt phase boundaries.
         """
-        scaler = HomeosMatrixScaler(tier_profile=tier_profile)
-        self.profile = scaler.tier
-        self.materials = scaler.get_scaled_matrix()
-
-        self.tank_volume_m3 = (self.profile['hull_thickness_meters'] ** 3) * 4.0
-        self.salt_config = self.materials['molten_salt_electrolyte']
-        self.current_temperature_celsius = 20.0  
-        self.state_of_charge_pct = 50.0          
-        self.is_electrolyte_liquid = False
-
-    def calculate_phase_dynamics(self, external_thermal_input_watts, duration_seconds):
-        """
-        Models phase changes and metabolic self-sustaining heating values.
-        """
-        specific_heat_solid = self.salt_config['specific_heat_solid_j_kgk']
-        specific_heat_liquid = self.salt_config['specific_heat_liquid_j_kgk']
-        approx_salt_mass_kg = self.tank_volume_m3 * self.salt_config['density_liquid_kg_m3']
-
-        internal_metabolic_heat_watts = 0.0
-        if self.is_electrolyte_liquid and self.state_of_charge_pct > 0.0:
-            internal_metabolic_heat_watts = (self.profile['target_power_output_kw'] * 1000.0) * 0.03
-
-        total_thermal_energy_joules = (external_thermal_input_watts + internal_metabolic_heat_watts) * duration_seconds
-        shc = specific_heat_liquid if self.is_electrolyte_liquid else specific_heat_solid
+        self.freeze_point_c = 158.0          # Critical crystallization line (Celsius)
+        self.optimal_target_c = 220.0        # System set point equilibrium baseline (Celsius)
+        self.latent_heat_fusion_j_kg = 315000.0  # Latent heat capacity profile parameter (J/kg)
         
-        self.current_temperature_celsius += total_thermal_energy_joules / (approx_salt_mass_kg * shc)
+        # Track physical state matrix boundaries
+        self.latent_energy_reserve_j = 0.0
+        logger.info("Thermal Storage Manager operational. Latent threshold locked at 158.0°C.")
 
-        if self.current_temperature_celsius >= self.salt_config['melting_point_celsius']:
-            self.is_electrolyte_liquid = True
-        else:
-            self.is_electrolyte_liquid = False
-
-        return {
-            "current_temp_c": round(self.current_temperature_celsius, 2),
-            "electrolyte_state": "LIQUID_ACTIVE" if self.is_electrolyte_liquid else "SOLID_INERT"
-        }
-
-    def execute_charge_cycle(self, input_power_watts, duration_seconds):
+    def compute_thermal_state(self, current_temp, incoming_joules, mass_kg):
         """
-        Charges the cell by migrating ions through the beta-alumina ceramic wall.
-        """
-        if not self.is_electrolyte_liquid:
-            return {"error": "CHARGE_BLOCKED: Electrolyte is solid. Pre-heating sequence required."}
-
-        energy_injected_wh = (input_power_watts * duration_seconds) / 3600.0
-        approx_salt_mass_kg = self.tank_volume_m3 * self.salt_config['density_liquid_kg_m3']
-        total_capacity_wh = approx_salt_mass_kg * 180.0
-
-        self.state_of_charge_pct = min(self.state_of_charge_pct + ((energy_injected_wh / total_capacity_wh) * 100.0 * 0.85), 100.0)
-
-        return {
-            "state_of_charge_pct": round(self.state_of_charge_pct, 2),
-            "internal_resistive_losses_watts": round(input_power_watts * 0.05, 2)
-        }
-
-    def execute_thermal_absorption_dump(self, core_waste_joules):
-        """
-        Absorbs kinetic braking or electromagnetic energy directly into the salt storage.
-        """
-        approx_salt_mass_kg = self.tank_volume_m3 * self.salt_config['density_liquid_kg_m3']
-        shc = self.salt_config['specific_heat_liquid_j_kgk']
+        Maps thermal progression steps across specific heat capacity boundaries.
+        Accurately transitions between solid, liquid, and latent state storage zones.
         
-        self.current_temperature_celsius += core_waste_joules / (approx_salt_mass_kg * shc)
-        max_ceramic_limit = self.materials['carbon_ceramic_matrix']['max_temp_celsius']
-        
-        status = "THERMAL_DUMP_ABSORBED_SUCCESSFULLY"
-        if self.current_temperature_celsius > max_ceramic_limit:
-            status = "CRITICAL_OVERHEATING_STRUCTURAL_RISK"
+        Parameters:
+            current_temp (float): Initial recorded baseline sensor core temperature (°C).
+            incoming_joules (float): Transferred work/heat energy dumped into the matrix (Joules).
+            mass_kg (float): Total physical volume weight of active salt mix inside the core.
             
-        return {
-            "battery_new_temp_c": round(self.current_temperature_celsius, 2),
-            "absorption_status": status
-        }
+        Returns:
+            dict: Complete snapshot of the adjusted thermal parameters.
+        """
+        if mass_kg <= 0.0:
+            logger.error("Thermal update rejected: Zero or negative storage mass matrix footprint.")
+            return {"temperature_c": current_temp, "phase_state": "INVALID_MASS"}
+
+        # Define dynamic specific heat coefficients based on material state matrix
+        # Solid phase: 1200 J/kg*K | Liquid phase: 1350 J/kg*K
+        c_p = 1200.0 if current_temp < self.freeze_point_c else 1350.0
+        
+        # Handle simple linear thermal routing if no phase changes occur
+        if current_temp != self.freeze_point_c:
+            delta_t = incoming_joules / (mass_kg * c_p)
+            projected_temp = current_temp + delta_t
+            
+            # Crosses freeze point line while cooling down
+            if current_temp > self.freeze_point_c and projected_temp < self.freeze_point_c:
+                # Calculate energy consumed to hit the exact transition threshold boundary
+                energy_to_freeze = (current_temp - self.freeze_point_c) * mass_kg * 1350.0
+                remaining_joules = incoming_joules + energy_to_freeze # incoming is negative
+                current_temp = self.freeze_point_c
+                incoming_joules = remaining_joules
+            
+            # Crosses freeze point line while heating up
+            elif current_temp < self.freeze_point_c and projected_temp > self.freeze_point_c:
+                energy_to_melt = (self.freeze_point_c - current_temp) * mass_kg * 1200.0
+                remaining_joules = incoming_joules - energy_to_melt
+                current_temp = self.freeze_point_c
+                incoming_joules = remaining_joules
+            
+            else:
+                # System remains within a single physical state band
+                phase = "LIQUID_STATE" if projected_temp > self.freeze_point_c else "SOLID_STATE"
+                return {"temperature_c": round(projected_temp, 2), "phase_state": phase}
+
+        # Handle the Latent Heat Fusion state plateau calculation at exactly 158.0°C
+        if current_temp == self.freeze_point_c:
+            max_latent_capacity = self.latent_heat_fusion_j_kg * mass_kg
+            self.latent_energy_reserve_j += incoming_joules
+            
+            # Clamp boundaries and process overflow energy if phase change completes
+            if self.latent_energy_reserve_j > max_latent_capacity:
+                overflow_joules = self.latent_energy_reserve_j - max_latent_capacity
+                self.latent_energy_reserve_j = max_latent_capacity
+                # Latent phase complete -> Transformed to full liquid status. Melt remaining via liquid c_p
+                final_temp = self.freeze_point_c + (overflow_joules / (mass_kg * 1350.0))
+                return {"temperature_c": round(final_temp, 2), "phase_state": "LIQUID_STATE"}
+                
+            elif self.latent_energy_reserve_j < 0.0:
+                underflow_joules = self.latent_energy_reserve_j
+                self.latent_energy_reserve_j = 0.0
+                # Latent phase complete -> Transformed to full solid status. Cool via solid c_p
+                final_temp = self.freeze_point_c + (underflow_joules / (mass_kg * 1200.0))
+                return {"temperature_c": round(final_temp, 2), "phase_state": "SOLID_STATE"}
+                
+            else:
+                return {"temperature_c": round(self.freeze_point_c, 2), "phase_state": "LATENT_TRANSITION_PLATEAU"}
