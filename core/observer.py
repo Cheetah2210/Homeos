@@ -81,34 +81,4 @@ class HomeosObserver:
 
         # --- HEURISTIC HOMEOSTATIC OVERRIDES ---
         
-        # CRITICAL FAULT STATE: System failure imminent or massive containment spill
-        if self.global_equilibrium < 0.35:
-            directive["target_gyro_output_pct"] = 0.0
-            directive["active_phase_cancellation"] = True
-            directive["thermal_reroute_target"] = "salt_vault_maximum"
-            directive["status_flag"] = "EMERGENCY_SHUTDOWN_ABSORPTION"
-            
-        # ACTIVE PAIN STATE: Structural micro-fissures or high mechanical shear forces detected
-        elif self.internal_pain_score > 0.0:
-            # Gradually throttle back the gyroscopic RPM to reduce centripetal stress
-            directive["target_gyro_output_pct"] = max(100.0 - (self.internal_pain_score * 100.0), 15.0)
-            # Route localized currents through aluminum/graphite nodes to activate cross-linking self-healing polymers
-            directive["thermal_reroute_target"] = "localized_cnt_mesh"
-            directive["status_flag"] = "ACTIVE_STRUCTURAL_HEALING"
-            
-        # SHADOW BREACH STATE: Field leakage is too high near surroundings
-        elif self.environmental_anxiety > 0.0:
-            # Maintain stable containment by activating peripheral counter-phase loops
-            directive["active_phase_cancellation"] = True
-            directive["target_gyro_output_pct"] = 75.0  # Safe back-off profile to squeeze field geometry inward
-            directive["status_flag"] = "SHADOW_CONTAINMENT_ACTIVE"
-            
-        # PROACTIVE THERMAL MONITORING (Quartz Shield Protection)
-        max_quartz_temp = self.materials['fused_quartz']['max_temp_celsius']
-        if core_temp > (max_quartz_temp * 0.75):
-            # If core temperatures creep too high, dump heat to the salt battery before quartz thermal stress occurs
-            directive["thermal_reroute_target"] = "salt_vault_nominal"
-            if directive["status_flag"] == "SYSTEM_OPTIMAL_HOMEOSTASIS":
-                directive["status_flag"] = "THERMAL_MANAGEMENT_ACTIVE"
-
-        return directive
+        # CRITICAL
