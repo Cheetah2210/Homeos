@@ -1,0 +1,61 @@
+{
+  "materials": {
+    "carbon_ceramic_matrix": {
+      "density_kg_m3": 1850.0,
+      "tensile_strength_mpa": 1200.0,
+      "thermal_conductivity_horizontal_w_mk": 350.0,
+      "thermal_conductivity_vertical_w_mk": 2.5,
+      "max_temp_celsius": 2200.0,
+      "pain_threshold_strain": 0.0045,
+      "coefficient_thermal_expansion_1e6_c": 1.2,
+      "description": "Indestructible woven carbon/CNT skeleton vacuum-infused with fired local alumina-silicate clay. Features high planar heat spreading but requires vertical thermal pinning."
+    },
+    "fused_quartz": {
+      "density_kg_m3": 2200.0,
+      "tensile_strength_mpa": 50.0,
+      "thermal_conductivity_w_mk": 1.4,
+      "dielectric_strength_kv_mm": 25.0,
+      "magnetic_permeability": 1.0,
+      "max_temp_celsius": 1150.0,
+      "coefficient_thermal_expansion_1e6_c": 0.55,
+      "description": "Locally sourced quartz isolation shield providing complete magnetic and thermal transparency to protect the core processor brain from flux fields."
+    },
+    "molten_salt_electrolyte": {
+      "composition": "NaCl-AlCl3",
+      "density_liquid_kg_m3": 1650.0,
+      "melting_point_celsius": 158.0,
+      "optimal_operating_temp_celsius": 230.0,
+      "critical_freeze_temp_celsius": 165.0,
+      "specific_heat_solid_j_kgk": 1200.0,
+      "specific_heat_liquid_j_kgk": 1350.0,
+      "description": "Abundant local table salt and aluminum chloride mixture. Entirely inert when solid; highly ionic and active when molten."
+    },
+    "anodized_aluminum_pins": {
+      "density_kg_m3": 2700.0,
+      "tensile_strength_mpa": 310.0,
+      "thermal_conductivity_w_mk": 205.0,
+      "electrical_resistivity_ohm_m": 2.82e-8,
+      "dielectric_breakdown_v": 400.0,
+      "max_temp_celsius": 600.0,
+      "coefficient_thermal_expansion_1e6_c": 23.1,
+      "description": "Lightweight, recycled household aluminum formed into tapered pins. Hard-anodized with an Al2O3 sapphire skin to isolate electrical currents while providing high-speed vertical thermal highways."
+    },
+    "powdered_iron_flux_guides": {
+      "composition": "Fe-Oxide-Resin-Composite",
+      "density_kg_m3": 5500.0,
+      "magnetic_permeability_relative": 150.0,
+      "max_temp_celsius": 180.0,
+      "thermal_conductivity_w_mk": 15.0,
+      "description": "Finely crushed scrap iron mixed into non-conductive binder. 3D-printable or moldable matrix used by the AI to warp permanent magnet paths and bypass traditional locking equilibrium sticky points."
+    },
+    "fired_clay_insulators": {
+      "composition": "Alumina-Silicate-Ceramic",
+      "density_kg_m3": 2400.0,
+      "compressive_strength_mpa": 350.0,
+      "thermal_conductivity_w_mk": 1.3,
+      "max_temp_celsius": 1400.0,
+      "coefficient_thermal_expansion_1e6_c": 5.4,
+      "description": "Common regional kiln-fired structural clay used as a high-temperature structural barrier between the energetic magnetic gates and the primary carbon hull."
+    }
+  }
+}
