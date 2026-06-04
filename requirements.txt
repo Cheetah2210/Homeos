@@ -1,0 +1,9 @@
+# --- Core Math & Structural Telemetry Processing ---
+numpy>=1.24.0          # High-speed multi-dimensional matrix and Lorentz vector operations
+
+# --- Local Network Data Streams & Hardware Bridging ---
+paho-mqtt>=1.6.1       # Lightweight protocol for publishing state telemetry to Home Assistant
+smbus2>=0.4.2          # Pure-Python I2C interface to read physical ADC pins on the quartz shield
+
+# --- Configuration & Validation Engines ---
+jsonschema>=4.17.0     # Enforces structural constraints on materials_matrix.json modifications
