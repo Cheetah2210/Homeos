@@ -1,4 +1,4 @@
-# Homeos: Deep Homeostatic Drive Architecture
+# Homeos: Deep Homeostatic Drive Simulation Architecture
 
 `Homeos` is a deterministic and reproducible framework for modeling unified multi-material electromagnetic propulsion and thermal-metabolic storage. This repository enforces a rigorous, decoupled engineering architecture that separates proven theoretical physics from predictive simulation assumptions, automated validation pipelines, and benchmarked hardware data.
 
@@ -13,7 +13,7 @@
 
 ## 📖 Project Overview & Nomenclature Mapping
 
-The `Homeos` project models high-energy physical systems by integrating a responsive structural chassis with a self-regulating control loop. To maintain absolute clarity across disciplines, all conceptual system systems translate directly to explicit engineering modules:
+The `Homeos` framework provides a reproducible environment for modeling high-energy physical system architectures, optimizing high-density thermal management profiles, and evaluating structural stabilization feedback loops. All conceptual system systems translate directly to explicit engineering modules:
 
 | Conceptual Name | Engineering Module Name | Technical Implementation Target |
 | :--- | :--- | :--- |
@@ -28,7 +28,7 @@ The `Homeos` project models high-energy physical systems by integrating a respon
 
 Every parameter inside `Homeos` is tagged with an explicit engineering verification code linking directly to its respective validation artifact file to guarantee auditability.
 
-* ✅ **Propulsion Mechanics `[VAL-ANALYTICAL]`**: Time-variant Lorentz force transformations checked symbolically against Maxwell's stress tensor boundary conditions. 
+* ✅ **Propulsion Mechanics `[VAL-ANALYTICAL]`**: Time-variant Lorentz force transformations checked symbolically against Maxwell's stress tensor boundary conditions via localized SymPy test cases. 
   * *Artifact Reference:* [`validation/analytical/VAL-ANALYTICAL-001.md`](validation/analytical/VAL-ANALYTICAL-001.md)
 * ✅ **Dynamic Scaling Matrix `[VAL-COMPUTATIONAL]`**: Non-linear volumetric material scaling logic verified via automated unit test engines (`tests/test_config_validation.py`). Algorithmic outputs match mathematical models within a $\pm0.001\%$ error margin.
 * ✅ **Hardware Telemetry Ingest `[VAL-COMPUTATIONAL]`**: Bitwise $I^2C$ sensor register reading (`smbus2`) validated locally using synthetic data injection frameworks via Hardware-in-the-Loop simulation pipelines.
@@ -53,6 +53,7 @@ Every parameter inside `Homeos` is tagged with an explicit engineering verificat
 | `/config/` | Materials matrices and structural scale profiles for Tiers 1, 2, and 3. |
 | `/core/` | System engine root housing the control engine, propulsion logic, thermal managers, and local I2C/MQTT modules. |
 | `/docs/` | Physics core reference manual mapping theoretical laws separately from predictive hypotheses. |
+| `/docs/assumptions/` | Definitive simulation envelope boundaries, documenting fixed parameters, free variables, and active idealizations. |
 | `/hardware/` | Physical layer stackup blueprints and comprehensive sensor bus pin-mapping schemas (.csv). |
 | `/tests/` | Automated configuration validation and end-to-end multi-variable integration test suites. |
 | `/validation/` | Formal audit taxonomy containing analytical derivations and empirical log artifacts. |
