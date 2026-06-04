@@ -108,4 +108,4 @@ The simulation execution sequence forces a causal, strict loop that completely i
 
 ***
 
-**Built for high-efficiency thermodynamic scavenging.**
+
