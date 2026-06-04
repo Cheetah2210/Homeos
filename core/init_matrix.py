@@ -20,12 +20,11 @@ class HomeosMatrixScaler:
 
     def get_scaled_matrix(self):
         """
-        Applies non-linear scaling laws to materials based on structural volume.
+        Applies non-linear material scaling laws based on structural volume.
         """
         scaled_matrix = {}
         
-        # Calculate scale factor relative to the base Tier 1 micro unit
-        # Radius ratio gives us a geometric scaling baseline
+        # Calculate scale factor relative to the base Tier 1 micro unit (0.15m)
         base_radius = 0.15 / 2.0
         current_radius = self.tier['core_diameter_meters'] / 2.0
         scale_factor = current_radius / base_radius
@@ -33,20 +32,14 @@ class HomeosMatrixScaler:
         for mat_name, properties in self.raw_materials.items():
             scaled_props = properties.copy()
             
-            # --- RULE 1: STRUCTURAL DERATING (WEAVE VOLUMETRICS) ---
-            # As carbon-ceramic structures grow larger, the probability of micro-voids
-            # in the composite increases. We apply a structural derating factor.
+            # --- RULE 1: STRUCTURAL DERATING ---
             if "tensile_strength_mpa" in properties:
                 if scale_factor > 1.0:
-                    # Structural strength scales down slightly as volume increases to maintain a safety margin
                     derating = 1.0 - (0.05 * math.log(scale_factor))
                     scaled_props["tensile_strength_mpa"] = round(properties["tensile_strength_mpa"] * derating, 2)
                     
             # --- RULE 2: THERMAL MASS DISSIPATION SCALING ---
-            # Heat dissipation drops relative to volume because volume scales cubically (r^3)
-            # while surface area only scales quadratically (r^2).
             if "thermal_conductivity_w_mk" in properties:
-                # Large systems require the AI to be more sensitive to heat traps
                 thermal_retention_factor = 1.0 / (1.0 + (0.02 * (scale_factor - 1.0)))
                 scaled_props["effective_thermal_dissipation_factor"] = round(thermal_retention_factor, 4)
             elif "thermal_conductivity_horizontal_w_mk" in properties:
@@ -54,8 +47,6 @@ class HomeosMatrixScaler:
                 scaled_props["effective_thermal_dissipation_factor"] = round(thermal_retention_factor, 4)
 
             # --- RULE 3: ELECTRICAL PAIN SENSITIVITY ---
-            # For massive tiers, structural strain takes longer to propagate through the chassis.
-            # We lower the pain threshold slightly for macro units so the AI reacts proactively.
             if "pain_threshold_strain" in properties:
                 scaled_props["pain_threshold_strain"] = round(properties["pain_threshold_strain"] * (1.0 / math.sqrt(scale_factor)), 6)
 
