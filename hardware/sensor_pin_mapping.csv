@@ -1,0 +1,12 @@
+Pin ID,Hardware Port,Sensor Type,Monitored Subsystem,Signal Range,Target Destination / Bus
+MWCNT_S1,ADC_CH0,Piezoresistive Mesh,Structural Hull (North Quadrant),0.0V - 3.3V (Differential),I2C Bus 1 (0x48)
+MWCNT_S2,ADC_CH1,Piezoresistive Mesh,Structural Hull (South Quadrant),0.0V - 3.3V (Differential),I2C Bus 1 (0x48)
+MWCNT_S3,ADC_CH2,Piezoresistive Mesh,Structural Hull (East Quadrant),0.0V - 3.3V (Differential),I2C Bus 1 (0x49)
+MWCNT_S4,ADC_CH3,Piezoresistive Mesh,Structural Hull (West Quadrant),0.0V - 3.3V (Differential),I2C Bus 1 (0x49)
+TH_CORE_1,GPIO_23,1-Wire Digital (DS18B20),Fused Quartz Brain Shield,Digital Pulse Train,GPIO Master Line
+SALT_T1,ADC_CH4,K-Type Thermocouple,Molten-Salt Reservoir Lower Bed,0.0V - 1.2V (Amplified),I2C Bus 1 (0x4A)
+SALT_T2,ADC_CH5,K-Type Thermocouple,Molten-Salt Reservoir Upper Bed,0.0V - 1.2V (Amplified),I2C Bus 1 (0x4A)
+FLUX_D1,ADC_CH6,Hall Effect Sensor,Powdered Iron Flux Guide Alpha,0.5V - 4.5V (Ratiometric),I2C Bus 1 (0x4B)
+FLUX_D2,ADC_CH7,Hall Effect Sensor,Powdered Iron Flux Guide Beta,0.5V - 4.5V (Ratiometric),I2C Bus 1 (0x4B)
+GIMB_A1,PWM_0,Optical Encoder,Stabilizer Ring Alpha Tilt Motor,5V Quadrature Pulse,Hardware Counter 0
+GIMB_B1,PWM_1,Optical Encoder,Stabilizer Ring Beta Tilt Motor,5V Quadrature Pulse,Hardware Counter 1
