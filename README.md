@@ -1,8 +1,8 @@
 # Homeos: Deep Homeostatic Drive Simulation Architecture
 
-`Homeos` is a discrete-time, deterministic multi-physics simulation framework defined over a coupled, explicitly partitioned state vector space. The framework enforces a strict, decoupled engineering architecture that separates true analytical physics from predictive simulation assumptions, measurement domain instrumentation, automated validation pipelines, and benchmarked hardware data profiles.
+`Homeos` is a discrete-time, deterministic multi-physics simulation framework defined over a coupled, explicitly partitioned state vector space. The framework enforces a rigorous, decoupled engineering architecture that separates true analytical physics from predictive simulation assumptions, degraded measurement domain instrumentation, automated validation pipelines, and benchmarked hardware data profiles.
 
-**Current Release:** Homeos v1.2 (Decoupled Physical/Observation Specification)  
+**Current Release:** Homeos v1.3 (Mathematically Complete Instrumentation Specification)  
 **Target Architecture:** Local-First, Cloud-Independent Simulation Twin  
 
 ## ⚖️ License
@@ -29,7 +29,7 @@ To preserve cross-disciplinary auditability and prevent domain pollution, all co
 
 ## 📐 Decoupled Mathematical State Space Specification
 
-To completely eliminate modeling ambiguity and prevent hidden coupling errors, the system splits the state vector into two mathematically isolated domains. This ensures the clean, noise-free conservation variables of the universe exist independently of the instrument loop measuring them. 
+The system splits the state vector into two mathematically isolated domains. This ensures the clean, noise-free conservation variables of the universe exist independently of the instrument loop measuring them, completely eliminating hidden coupling errors.
 
 The complete system vector space is structured as a partitioned block matrix in $\mathbb{R}^{10}$:
 
@@ -39,15 +39,39 @@ $$\mathbf{x}(t) = \begin{bmatrix} \mathbf{x}_{\text{phys}}(t) \\ \mathbf{x}_{\te
 Tracks the true hidden physical parameters of the environment, evolving via pure conservation laws and physics solvers:
 $$\mathbf{x}_{\text{phys}}(t) = \left[ \epsilon, z, v, \ I, B_0, \Lambda, \ T, \phi \right]^T$$
 
-* **Mechanical Domain (Indices `[0:3]`):** Structural load strain ($\epsilon$), structural displacement ($z$), and structural velocity ($v$).
-* **Electromagnetic Domain (Indices `[3:6]`):** Excitation current ($I$), central azimuthal magnetic flux density ($B_0$), and boundary containment leakage ($\Lambda$).
-* **Thermal Domain (Indices `[6:8]`):** Field temperature ($T$) and salt storage phase fraction ($\phi$).
+* **Mechanical Domain (Indices `[0:3]`):** Structural load strain ($\epsilon$ [dimensionless]), structural displacement ($z$ [m]), and structural velocity ($v$ [m/s]).
+* **Electromagnetic Domain (Indices `[3:6]`):** Excitation current ($I$ [A]), central azimuthal magnetic flux density ($B_0$ [T]), and boundary containment leakage ($\Lambda$ [T]).
+* **Thermal Domain (Indices `[6:8]`):** Field temperature ($T$ [K]) and salt storage phase fraction ($\phi$ [dimensionless]).
 
 ### 2. Observation State Space / Telemetry Domain: $\mathbf{x}_{\text{obs}}(t) \in \mathbb{R}^2$
 Maps the instrument outputs derived through measurement transforms. This is the **only** layer visible to control law algorithms, modeling a true physical boundary where controllers cannot "peek" at the underlying universe without sensor distortion:
 $$\mathbf{x}_{\text{obs}}(t) = \left[ V_{\text{strain}}, V_{\text{leakage}} \right]^T$$
 
-* **Sensor Domain (Indices `[8:10]`):** Piezoresistive hull network voltage readout ($V_{\text{strain}}$) and localized hall-array leakage signal tracking ($V_{\text{leakage}}$).
+* **Sensor Domain (Indices `[8:10]`):** Piezoresistive hull network voltage readout ($V_{\text{strain}}$ [V]) and localized hall-array leakage signal tracking ($V_{\text{leakage}}$ [V]).
+
+---
+
+## 🔍 Observation Model & Unit Consistency Layer
+
+To map mixed physical variables (strain, Tesla, amperes) into unified telemetry signals without dimensional corruption, `Homeos` implements an explicit observation and instrumentation pipeline defined as:
+
+$$\mathbf{x}_{\text{obs}}(t) = \text{Quantize}_{Q}\left( \text{Clip}_{0.0}^{3.3}\left( \mathbf{H}(\mathbf{x}_{\text{phys}}(t)) + \boldsymbol{\beta}(t) + \boldsymbol{\eta}_{\text{gauss}}(t) \right) \right)$$
+
+### 1. Ideal Measurement Transform Matrix ($\mathbf{H}$)
+The ideal observation layer converts un-normalized physical scales into a standard $0.0\text{V} - 3.3\text{V}$ voltage rail using fixed physical scaling constants:
+
+$$\mathbf{H}(\mathbf{x}_{\text{phys}}(t)) = \begin{bmatrix} \frac{\epsilon(t)}{\epsilon_{\text{max}}} \cdot 3.3 \\ \Lambda(t) \cdot G_{\text{hall}} \end{bmatrix}$$
+
+* **Strain Normalization:** Scaled against the maximum material strain limit ($\epsilon_{\text{max}} = 0.0035$) defined in `config/materials_matrix.json`.
+* **Flux Normalization:** Scaled via the constant magnetic field hall-effect array amplifier gain ($G_{\text{hall}} = 20.0\,\text{V/T}$).
+
+### 2. Instrumentation Error & Quantization Parameters
+To fulfill mathematical completeness for state observability, the telemetry pipeline overlays real-world instrumentation errors onto the ideal voltage vector:
+
+* **Static Instrument Bias ($\boldsymbol{\beta}_0$):** Permanent voltage offsets (+5.0 mV on strain, -12.0 mV on leakage).
+* **Time-Variant Drift ($\delta$):** Simulates random walk and linear thermal degradation over time ($0.1\,\text{mV/s}$ on strain, $0.05\,\text{mV/s}$ on leakage).
+* **Thermal Gaussian Noise ($\boldsymbol{\eta}_{\text{gauss}}$):** Zero-mean white noise ($\sigma_{\text{strain}} = 1.0\,\text{mV}$, $\sigma_{\text{leakage}} = 2.5\,\text{mV}$) generated via fixed, step-isolated pseudo-random seeds.
+* **ADC Bitwise Quantization ($Q$):** Enforces hardware bit-resolution grids across the analog rails using floor/ceiling discrete step rounding (12-bit for strain, 16-bit for flux leakage).
 
 ---
 
@@ -67,4 +91,8 @@ Every parameter inside `Homeos` is tagged with an explicit engineering verificat
 
 ## 🔬 Validation & Reproducibility Pipeline
 
-`Homeos` utilizes an automated verification gate
+`Homeos` utilizes an automated verification gate that checks parameter maturity boundaries before allowing configurations to compile into active control loops.
+
+The integration test suite (`tests/test_system_integration.py`) enforces deterministic fixtures and reproducible pseudo-random seed states (`numpy.random.default_rng(seed=42)`) to ensure numerical Simpson-rule convergence remains beneath a strict $\le 10^{-5}$ error ceiling relative to closed-form analytical solutions.
+
+The simulation execution sequence forces a causal, strict loop that completely isolates state transition logic from measurement mapping transforms:
