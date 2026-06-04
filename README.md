@@ -2,6 +2,8 @@
 
 `Homeos` is a discrete-time, deterministic multi-physics simulation framework defined over a coupled, explicitly partitioned state vector space. The framework enforces a rigorous, decoupled engineering architecture that separates true analytical physics from predictive simulation assumptions, degraded measurement domain instrumentation, automated validation pipelines, and benchmarked hardware data profiles.
 
+![Homeos Core Architectural Blueprint Matrix](images/Homeos%20(1).png)
+
 **Current Release:** Homeos v1.3 (Mathematically Complete Instrumentation Specification)  
 **Target Architecture:** Local-First, Cloud-Independent Simulation Twin  
 
@@ -24,6 +26,8 @@ To preserve cross-disciplinary auditability and prevent domain pollution, all co
 | **Sensory Matrix** | `Sensor Interface` | Ingests, normalizes, and filters local physical I2C telemetry. | `core/hardware_interface.py` |
 | **Propulsion Muscle** | `Propulsion Logic` | Translates thrust profiles into Lorentz vector fields. | `src/homeos/physics/electromagnetics.py` |
 | **Thermal Metabolism** | `Thermal Solver` | Directs phase-change and molten-salt energy balancing. | `src/homeos/physics/thermal.py` |
+
+![Central 3D System Core Render and Hardware Stackup](images/Homeos%20(2).png)
 
 ---
 
@@ -55,7 +59,7 @@ $$\mathbf{x}_{\text{obs}}(t) = \left[ V_{\text{strain}}, V_{\text{leakage}} \rig
 
 To map mixed physical variables (strain, Tesla, amperes) into unified telemetry signals without dimensional corruption, `Homeos` implements an explicit observation and instrumentation pipeline defined as:
 
-$$\mathbf{x}_{\text{obs}}(t) = \text{Quantize}_{Q}\left( \text{Clip}_{0.0}^{3.3}\left( \mathbf{H}(\mathbf{x}_{\text{phys}}(t)) + \boldsymbol{\beta}(t) + \boldsymbol{\eta}_{\text{gauss}}(t) \right) \right)$$
+$$\mathbf{x}_{\text{obs}}(t) = \text{Quantize}_{Q}\left( \text{Clip}_{0.0}^{3.3}\left( \mathbf{H}(\mathbf{x}_{\text{phys}}(t)) + \boldsymbol{\beta}(t) + \boldsymbol{\eta}_{\text{gauss}}(t) \right) \right)$$.
 
 ### 1. Ideal Measurement Transform Matrix ($\mathbf{H}$)
 The ideal observation layer converts un-normalized physical scales into a standard $0.0\text{V} - 3.3\text{V}$ voltage rail using fixed physical scaling constants:
@@ -96,6 +100,8 @@ Every parameter inside `Homeos` is tagged with an explicit engineering verificat
 The integration test suite (`tests/test_system_integration.py`) enforces deterministic fixtures and reproducible pseudo-random seed states (`numpy.random.default_rng(seed=42)`) to ensure numerical Simpson-rule convergence remains beneath a strict $\le 10^{-5}$ error ceiling relative to closed-form analytical solutions.
 
 The simulation execution sequence forces a causal, strict loop that completely isolates state transition logic from measurement mapping transforms:
+
+![Coupled Loop Signal Transformation Mechanics and Material Thermal Profiles](images/Homeos%20(3).png)
 
 ---
 
