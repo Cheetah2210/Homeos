@@ -3,23 +3,23 @@ from homeos.core.state import HomeosState
 from homeos.core.controller import Controller
 from homeos.core.engine import SimulationEngine
 
-def test_observation_split_integrity():
-    """Verifies that true physical parameters and observational properties do not bleed vector blocks."""
+def test_instrumentation_quantization_limits():
+    """Verifies that sensor observations show realistic quantization steps and bias features."""
     initial_state = HomeosState(
-        mechanical=np.array([0.001, 0.0, 0.0]),
-        electromagnetic=np.array([5.0, 1.5, 0.002]),
-        thermal=np.array([200.0, 1.0]),
-        sensor=np.array([0.942, 0.040])
+        mechanical=np.array([0.0, 0.0, 0.0]),
+        electromagnetic=np.array([0.0, 0.0, 0.0]),
+        thermal=np.array([20.0, 0.0]),
+        sensor=np.array([0.0, 0.0])
     )
     
-    # Verify vector dimension slice outputs
-    assert initial_state.x_phys.shape == (8,)
-    assert initial_state.x_obs.shape == (2,)
-    assert initial_state.get_unified_vector().shape == (10,)
-    
-    engine = SimulationEngine(Controller())
+    engine = SimulationEngine(Controller(), dt=0.01, base_seed=1337)
     next_state = engine.step(initial_state)
     
-    # Confirm structural separation is maintained post-step transformation
-    assert next_state.x_phys is not None
-    assert next_state.x_obs is not None
+    # Static bias values check: Initial step error yields non-zero baseline telemetry
+    # Strain bias: 5mV + noise/quantization. Leakage bias: -12mV clipped to 0V rail or slightly shifted
+    assert next_state.x_obs[0] > 0.0, "Sensor channel failed to account for static hardware bias offsets."
+    
+    # Enforce that outputs strictly match digital 12-bit and 16-bit resolution grids
+    q_step_strain = 3.3 / 4096.0
+    remainder = next_state.x_obs[0] % q_step_strain
+    assert np.isclose(remainder, 0.0) or np.isclose(remainder, q_step_strain), "Telemetry channel bypassed bitwise quantization filters."
