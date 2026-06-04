@@ -1,69 +1,62 @@
-# Homeos: Core Physics Dictionary & Material Integration Matrices
+# Homeos: Physics Core Reference Manual & Architectural Maturity Mapping
 
-This document establishes the deterministic mathematical and physical constants, governing field equations, and homothetic scaling profiles utilized across the `homeos` framework simulation layers.
+This document establishes the mathematical and physical parameters utilized within the `homeos` framework, explicitly separating proven mathematical models from predictive simulation assumptions, verification workflows, and demonstrated physical hardware capabilities.
 
 ---
 
-## 1. Primary Electrodynamic & Kinetic Governance
+## Domain 1: Mathematical Models (Proven Theoretical Frameworks)
+
+These core equations are derived from established classical mechanics, electrodynamics, and continuum physics. They provide the non-negotiable theoretical boundaries within which the software operates.
 
 ### 1.1 Time-Variant Lorentz Vector Acceleration
-The forward propulsion vector is driven by continuous cross-field current injection across a localized, magnetic flux channel. To prevent magnetic locking anomalies ("sticky points") common to static permanent configurations, the input field density is treated as a time-variant delta function.
+Forward propulsion calculations utilize the classical Lorentz force equation applied across a dynamic current injection channel within a defined magnetic flux path:
 
 $$\mathbf{F} = \int (I(t) \cdot d\mathbf{L} \times \mathbf{B}_{\text{eff}})$$
 
-Where:
-* $I(t) = I_{\text{max}} \cdot \left(\frac{\text{target\_pct}}{100}\right) \cdot [1.0 + \sin(\omega_{\text{gyro}} \cdot \Delta t) \cdot \delta]$
-* $\mathbf{B}_{\text{eff}} = \mathbf{B}_0 \cdot \mu_r \cdot \Phi_{\text{containment}}$
-* $\Phi_{\text{containment}} = 0.85$ under active peripheral counter-phase loop cancellation.
+* **Maturity Status:** Verified Theoretical Framework.
+* **Governing Constraint:** This equation calculates theoretical thrust based on idealized magnetic flux distribution ($\mathbf{B}_{\text{eff}}$); it does not account for real-world geometric edge-leakage distortions or material saturation boundaries until modulated by the Simulation Layer.
 
-### 1.2 Multi-Axis Gyroscopic Torque Compensation
-Centripetal force distribution and angular momentum storage within the 3D orthogonal woven carbon skeleton cylinder are mapped via the moment of inertia ($I_{\text{core}}$):
+### 1.2 Multi-Axis Kinetic Energy & Inertial Moments
+Centripetal force distribution and angular momentum storage within the cylindrical support framing are mapped via classical Newtonian rigid-body mechanics:
 
-$$I_{\text{core}} = \frac{1}{2} M_{\text{hull}} \cdot R_{\text{core}}^2$$
+$$I_{\text{core}} = \frac{1}{2} M_{\text{hull}} \cdot R_{\text{core}}^2 \quad \text{and} \quad E_k = \frac{1}{2} I_{\text{core}} \cdot \omega_{\text{gyro}}^2$$
 
-$$E_k = \frac{1}{2} I_{\text{core}} \cdot \omega_{\text{gyro}}^2$$
-
-To prevent critical mechanical shear waves from propagating along the composite boundaries during high-acceleration transients, the dual outer gimbals compute instant anti-torque angular deltas ($\alpha$, $\beta$):
-
-$$\tau_{\text{reaction}} = \mathbf{F}_{\text{net}} \times \mathbf{R}_{\text{core}}$$
-
-$$\alpha_{\text{gimbal}} = \text{clamp}\left(\tau_{\text{reaction}} \cdot \kappa, -45.0^{\circ}, 45.0^{\circ}\right)$$
+* **Maturity Status:** Verified Theoretical Framework.
+* **Governing Constraint:** Maps nominal angular momentum assuming uniform mass distribution across a perfectly rigid, symmetrical geometry.
 
 ---
 
-## 2. Dynamic Homothetic Material Scaling Transformations
+## Domain 2: Simulation Assumptions (Unverified Predictive Hypotheses)
 
-Physical attributes do not scale linearly due to volumetric vs. surface area constraints ($r^3$ vs. $r^2$). The framework uses a structural scale factor ($\lambda$) relative to the Tier 1 prototyping baseline ($R_0 = 0.075\text{m}$):
+The following metrics represent predictive approximations used to build the software twin and adaptive heuristic loops. They remain **unverified hypotheses** until empirical laboratory validation data is captured.
 
-$$\lambda = \frac{R_{\text{current}}}{R_0}$$
+### 2.1 Piezoresistive Multi-Walled Carbon Nanotube (MWCNT) Mesh Scaling
+The framework calculates structural strain based on the assumption that a water-based MWCNT suspension airbrushed onto a composite substrate exhibits a linear piezoresistive gauge factor across macroscopic shear planes:
 
-### 2.1 Volumetric Structural Strength Derating
-As the total volume of the fired alumina-silicate infused carbon matrix expands, the mathematical probability of internal micro-void formations increases. The active structural safety threshold ($\sigma_{\text{allowable}}$) is derated using a logarithmic decay function:
+$$\frac{\Delta R}{R_0} = G \cdot \epsilon$$
+
+* **Maturity Status:** Unverified Simulation Hypothesis.
+* **Engineering Risk:** Real-world carbon nanotube dispersion uniformity, contact resistance variations at the aluminum pin interfaces, and resin micro-fracturing under high cyclic thermal loads will introduce non-linear signal drift. This must be validated using physical strain-gauge calibration profiles.
+
+### 2.2 Volumetric Micro-Void Tensile Strength Derating
+To model structural scale-up constraints, the framework uses a logarithmic decay heuristic to approximate the statistical probability of structural micro-void formations within large-scale, kiln-fired technical ceramics:
 
 $$\sigma_{\text{allowable}}(\lambda) = \sigma_{\text{nominal}} \cdot \left(1.0 - \chi \cdot \ln(\lambda)\right)$$
 
-### 2.2 Acoustic-Delay Pain Sensitivity Scaling
-In macro-scale deployments, mechanical acoustic strain waves require non-trivial propagation intervals to traverse the thick composite hull. The AI Observer's structural sensitivity threshold ($\epsilon_{\text{pain}}$) must scale inversely with the square root of the scale factor to trigger proactive energy routing:
-
-$$\epsilon_{\text{pain}}(\lambda) = \frac{\epsilon_{\text{nominal}}}{\sqrt{\lambda}}$$
+* **Maturity Status:** Unverified Simulation Hypothesis.
+* **Engineering Risk:** The scaling coefficient ($\chi = 0.12$) is a placeholder model. Actual tensile derating parameters are heavily dependent on kiln temperature ramp profiles, raw material sifting consistency, and local compression molding forces.
 
 ---
 
-## 3. Thermodynamics & Phase-Change Interfaces
+## Domain 3: Experimental Validation Workflows
 
-### 3.1 Molten-Salt Electrolytic Metabolism ($NaCl\text{-}AlCl_3$)
-Energy storage relies on ion migration through a beta-alumina solid electrolyte (BASE) ceramic tube. The chemical matrix transitions between an inert solid crystal and an active ionic liquid:
+These workflows define how simulation hypotheses are systematically audited and corrected using hardware-in-the-loop (HiL) feedback mechanisms.
 
-$$\Delta T = \frac{Q_{\text{external}} + Q_{\text{metabolic}}}{(M_{\text{salt}} \cdot C_p)}$$
+### 3.1 Telemetry Hardware-in-the-Loop (HiL) Pipeline
+The validation suite enforces strict boundary conditions by feeding synthetic sensor data blocks into the physical communication registers of `core/hardware_interface.py`. This verifies that the `HomeosObserver` triggers appropriate homeostatic safety mitigations (e.g., `ACTIVE_STRUCTURAL_HEALING`) before simulated parameters exceed physical material breakdown points.
 
-Where:
-* $C_p = C_{p,\text{solid}}$ ($1200\text{ J/kg}\cdot\text{K}$) if $T < 158^{\circ}\text{C}$
-* $C_p = C_{p,\text{liquid}}$ ($1350\text{ J/kg}\cdot\text{K}$) if $T \ge 158^{\circ}\text{C}$
-* $Q_{\text{metabolic}} = P_{\text{output}} \cdot \eta_{\text{resistive}}$ (Internal $I^2R$ self-sustaining thermal overhead)
+---
 
-### 3.2 Thermal Expansion Mismatch Integration (CTE)
-The spatial layout interfaces high-conductivity anodized aluminum thermal pins ($\alpha_{\text{CTE}} = 23.1 \times 10^{-6}/\text{C}$) directly against the horizontal plane of the carbon-ceramic core ($\alpha_{\text{CTE}} = 1.2 \times 10^{-6}/\text{C}$). The software continuously tracks the absolute expansion differential ($\Delta L$) along the quartz isolation clearances:
+## Domain 4: Demonstrated Hardware Capabilities
 
-$$\Delta L_{\text{differential}} = L_0 \cdot \left(\alpha_{\text{aluminum}} - \alpha_{\text{carbon}}\right) \cdot \Delta T$$
-
-If $\Delta L_{\text{differential}}$ approaches the machined physical tolerancing limits, the system triggers active cooling via thermal shunts into the primary salt jacket.
+These metrics
