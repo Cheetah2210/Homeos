@@ -4,27 +4,29 @@ import numpy as np
 @dataclass(frozen=True)
 class HomeosState:
     """
-    Immutable multi-physics state vector representation at discrete timestep t.
-    Prevents implicit mutation during physical parameter updates.
+    Immutable snapshot of the multi-physics state vector at discrete timestep t.
+    Prevents thread mutation or unintended domain contamination.
     """
-    mechanical: np.ndarray       # State vector x_m (e.g., [stress, strain, geometry])
-    electromagnetic: np.ndarray  # State vector x_e (e.g., [current, field, flux])
-    thermal: np.ndarray          # State vector x_t (e.g., [temperature, phase fraction])
-    sensor: np.ndarray           # State vector x_s (e.g., noisy state observations)
+    mechanical: np.ndarray       # Vector x_m: [strain, displacement, velocity]
+    electromagnetic: np.ndarray  # Vector x_e: [current_i, flux_b0, leakage]
+    thermal: np.ndarray          # Vector x_t: [temp_c, phase_fraction_phi]
+    sensor: np.ndarray           # Vector x_s: [strain_voltage, leakage_signal]
 
     def __post_init__(self):
-        """Ensure all fields are loaded as read-only NumPy array matrices."""
-        if hasattr(self.mechanical, 'flags'):
-            self.mechanical.flags.writeable = False
-        if hasattr(self.electromagnetic, 'flags'):
-            self.electromagnetic.flags.writeable = False
-        if hasattr(self.thermal, 'flags'):
-            self.thermal.flags.writeable = False
-        if hasattr(self.sensor, 'flags'):
-            self.sensor.flags.writeable = False
+        """Enforce strict read-only flags across all internal arrays."""
+        for vec in [self.mechanical, self.electromagnetic, self.thermal, self.sensor]:
+            if hasattr(vec, 'flags'):
+                vec.flags.writeable = False
+
+    def validate_dimensions(self, m_dim=3, e_dim=3, t_dim=2, s_dim=2):
+        """Validates shape consistency before updating independent numerical layers."""
+        assert self.mechanical.shape == (m_dim,), f"Mechanical dimension layout mismatch: {self.mechanical.shape}"
+        assert self.electromagnetic.shape == (e_dim,), f"EM dimension layout mismatch: {self.electromagnetic.shape}"
+        assert self.thermal.shape == (t_dim,), f"Thermal dimension layout mismatch: {self.thermal.shape}"
+        assert self.sensor.shape == (s_dim,), f"Sensor dimension layout mismatch: {self.sensor.shape}"
 
     def copy_with_update(self, mechanical=None, electromagnetic=None, thermal=None, sensor=None):
-        """Safely transitions to timestep t+1 using unmutated state vectors."""
+        """Generates a fresh, unmutated state vector block for timestep t+1."""
         return HomeosState(
             mechanical=np.copy(mechanical) if mechanical is not None else np.copy(self.mechanical),
             electromagnetic=np.copy(electromagnetic) if electromagnetic is not None else np.copy(self.electromagnetic),
