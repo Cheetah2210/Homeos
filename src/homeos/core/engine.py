@@ -1,6 +1,8 @@
+import numpy as np
 from homeos.core.state import HomeosState
 from homeos.physics.mechanics import update_mechanics
-from homeos.physics.thermal import update_temperature
+from homeos.physics.electromagnetics import update_electromagnetics
+from homeos.physics.thermal import update_thermal
 
 class SimulationEngine:
     def __init__(self, controller, dt: float = 0.01):
@@ -9,26 +11,24 @@ class SimulationEngine:
 
     def step(self, state: HomeosState) -> HomeosState:
         """
-        Advances the coupled multi-physics states by one deterministic timestep dt.
+        Advances the coupled structural layers by a single fixed time increment (dt).
         """
-        # 1. Evaluate feedback directives from the current immutable snapshot
+        state.validate_dimensions()
+        
+        # 1. Gather active controller targets
         u = self.controller.compute(state)
 
-        # 2. Compute state space transitions across independent solvers
-        next_mechanical = update_mechanics(
-            state.mechanical,
-            u["force"],
-            self.dt
-        )
+        # 2. Process independent system updates sequentially
+        next_mech = update_mechanics(state.mechanical, u["force"], self.dt)
+        next_em = update_electromagnetics(state.electromagnetic, u, self.dt)
+        next_thermal = update_thermal(state.thermal, u["heat"], state.electromagnetic[0], self.dt)
+        
+        # 3. Formulate sensor readout tracking metrics
+        next_sensor = np.array([round((next_mech[0] / 0.0035) * 3.3, 4), round(next_em[2] * 20.0, 4)])
 
-        next_thermal = update_temperature(
-            state.thermal,
-            u["heat"],
-            self.dt
-        )
-
-        # 3. Compile and return a fresh, distinct, immutable state container for timestep t+1
         return state.copy_with_update(
-            mechanical=next_mechanical,
-            thermal=next_thermal
+            mechanical=next_mech,
+            electromagnetic=next_em,
+            thermal=next_thermal,
+            sensor=next_sensor
         )
