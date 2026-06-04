@@ -1,11 +1,9 @@
-from homeos.core.engine import SimulationEngine
-from homeos.core.state import HomeosState
-from homeos.core.controller import Controller
-from homeos.core.observer import Observer
+from homeos.physics.mechanics import update_mechanics
+from homeos.physics.electromagnetics import update_electromagnetics
+from homeos.physics.thermal import update_thermal
 
 __all__ = [
-    "SimulationEngine",
-    "HomeosState",
-    "Controller",
-    "Observer",
+    "update_mechanics",
+    "update_electromagnetics",
+    "update_thermal",
 ]
