@@ -6,13 +6,15 @@ class Controller:
         self.k_m = mechanical_gain
         self.k_t = thermal_gain
 
-    def compute(self, state: HomeosState) -> dict:
+    def compute(self, obs_state: np.ndarray) -> dict:
         """
-        Generates deterministic physical actuation directives from state snapshots.
+        Computes control directives using ONLY the decoupled observation vector x_obs.
+        Prevents state-estimation leaking or non-causal tracking loops.
         """
+        # obs_state[0] = v_strain_measurement, obs_state[1] = v_leakage_measurement
         return {
-            "force": self.k_m * state.mechanical,
-            "heat": self.k_t * state.thermal,
+            "force": self.k_m * np.array([obs_state[0], 0.0, 0.0]),
+            "heat": self.k_t * np.array([obs_state[1], 0.0]),
             "target_gyro_output_pct": 100.0,
-            "active_phase_cancellation": False
+            "active_phase_cancellation": True if obs_state[1] > 0.5 else False
         }
