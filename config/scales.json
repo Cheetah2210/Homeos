@@ -1,0 +1,25 @@
+{
+  "system_scale_profiles": {
+    "tier_1_micro": {
+      "outer_radius_meters": 0.075,
+      "nominal_mass_kg": 4.25,
+      "environmental_shadow_radius_meters": 1.5
+    },
+    "tier_2_macro": {
+      "outer_radius_meters": 0.375,
+      "nominal_mass_kg": 531.25,
+      "environmental_shadow_radius_meters": 7.5
+    }
+  },
+  "materials": {
+    "carbon_ceramic_matrix": {
+      "elastic_modulus_pa": 1.2e10,
+      "pain_threshold_strain": 0.0035
+    },
+    "molten_salt_electrolyte": {
+      "optimal_operating_temp_celsius": 220.0,
+      "critical_freeze_temp_celsius": 158.0,
+      "latent_heat_fusion_j_kg": 315000.0
+    }
+  }
+}
