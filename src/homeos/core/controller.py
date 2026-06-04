@@ -8,9 +8,11 @@ class Controller:
 
     def compute(self, state: HomeosState) -> dict:
         """
-        Evaluates system parameters to produce rule-based control vectors.
+        Generates deterministic physical actuation directives from state snapshots.
         """
         return {
             "force": self.k_m * state.mechanical,
             "heat": self.k_t * state.thermal,
+            "target_gyro_output_pct": 100.0,
+            "active_phase_cancellation": False
         }
