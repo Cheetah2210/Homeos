@@ -1,8 +1,8 @@
 # Homeos: Deep Homeostatic Drive Simulation Architecture
 
-`Homeos` is a discrete-time, deterministic multi-physics simulation framework defined over an explicit, coupled state vector. The system enforces a rigorous, decoupled engineering architecture that separates proven analytical physics from predictive simulation assumptions, automated validation pipelines, and benchmarked hardware data profiles.
+`Homeos` is a discrete-time, deterministic multi-physics simulation framework defined over a coupled, explicitly partitioned state vector space. The framework enforces a strict, decoupled engineering architecture that separates true analytical physics from predictive simulation assumptions, measurement domain instrumentation, automated validation pipelines, and benchmarked hardware data profiles.
 
-**Current Release:** Homeos v1.1 (Explicit State Specification)  
+**Current Release:** Homeos v1.2 (Decoupled Physical/Observation Specification)  
 **Target Architecture:** Local-First, Cloud-Independent Simulation Twin  
 
 ## ⚖️ License
@@ -16,7 +16,7 @@
 
 The `Homeos` framework provides a reproducible environment for modeling high-energy physical system architectures, optimizing high-density thermal management profiles, and evaluating structural stabilization feedback loops. 
 
-To preserve cross-disciplinary auditability, all conceptual domain metaphors translate directly to explicit, decoupled engineering modules housed inside the production package root:
+To preserve cross-disciplinary auditability and prevent domain pollution, all conceptual domain metaphors translate directly to explicit, decoupled engineering modules housed inside the production package root:
 
 | Conceptual Name | Engineering Module Name | Functional Scope | Technical Implementation Target |
 | :--- | :--- | :--- | :--- |
@@ -27,18 +27,27 @@ To preserve cross-disciplinary auditability, all conceptual domain metaphors tra
 
 ---
 
-## 📐 Formal State Space Specification
+## 📐 Decoupled Mathematical State Space Specification
 
-To maximize numerical solver clarity and streamline verification, the system transitions away from implicit state parameters by formalizing an explicit unified state vector space. At any given timestep $t$, the system status is encapsulated as a single, concatenated 1D column vector in $\mathbb{R}^{10}$:
+To completely eliminate modeling ambiguity and prevent hidden coupling errors, the system splits the state vector into two mathematically isolated domains. This ensures the clean, noise-free conservation variables of the universe exist independently of the instrument loop measuring them. 
 
-$$\mathbf{x}(t) = \begin{bmatrix} \mathbf{x}_m \\ \mathbf{x}_e \\ \mathbf{x}_t \\ \mathbf{x}_s \end{bmatrix} = \left[ \epsilon, z, v, \ I, B_0, \Lambda, \ T, \phi, \ V_{\text{strain}}, V_{\text{leakage}} \right]^T$$
+The complete system vector space is structured as a partitioned block matrix in $\mathbb{R}^{10}$:
 
-This array structure is split into well-defined mathematical segments inside `src/homeos/core/state.py` to allow cross-domain tracking via fixed index offsets:
+$$\mathbf{x}(t) = \begin{bmatrix} \mathbf{x}_{\text{phys}}(t) \\ \mathbf{x}_{\text{obs}}(t) \end{bmatrix}$$
 
-* **$\mathbf{x}_m$ (Indices `[0:3]`):** Mechanical sub-vector tracking structural load strain ($\epsilon$), displacement ($z$), and velocity ($v$).
-* **$\mathbf{x}_e$ (Indices `[3:6]`):** Electromagnetic sub-vector mapping input current ($I$), magnetic flux density ($B_0$), and leakage fields ($\Lambda$).
-* **$\mathbf{x}_t$ (Indices `[6:8]`):** Thermal sub-vector managing spatial temperature ($T$) and salt storage phase fraction ($\phi$).
-* **$\mathbf{x}_s$ (Indices `[8:10]`):** Sensor observation sub-vector tracking raw strain voltage ($V_{\text{strain}}$) and localized leakage signal feedback ($V_{\text{leakage}}$).
+### 1. True Physical State Space: $\mathbf{x}_{\text{phys}}(t) \in \mathbb{R}^8$
+Tracks the true hidden physical parameters of the environment, evolving via pure conservation laws and physics solvers:
+$$\mathbf{x}_{\text{phys}}(t) = \left[ \epsilon, z, v, \ I, B_0, \Lambda, \ T, \phi \right]^T$$
+
+* **Mechanical Domain (Indices `[0:3]`):** Structural load strain ($\epsilon$), structural displacement ($z$), and structural velocity ($v$).
+* **Electromagnetic Domain (Indices `[3:6]`):** Excitation current ($I$), central azimuthal magnetic flux density ($B_0$), and boundary containment leakage ($\Lambda$).
+* **Thermal Domain (Indices `[6:8]`):** Field temperature ($T$) and salt storage phase fraction ($\phi$).
+
+### 2. Observation State Space / Telemetry Domain: $\mathbf{x}_{\text{obs}}(t) \in \mathbb{R}^2$
+Maps the instrument outputs derived through measurement transforms. This is the **only** layer visible to control law algorithms, modeling a true physical boundary where controllers cannot "peek" at the underlying universe without sensor distortion:
+$$\mathbf{x}_{\text{obs}}(t) = \left[ V_{\text{strain}}, V_{\text{leakage}} \right]^T$$
+
+* **Sensor Domain (Indices `[8:10]`):** Piezoresistive hull network voltage readout ($V_{\text{strain}}$) and localized hall-array leakage signal tracking ($V_{\text{leakage}}$).
 
 ---
 
@@ -58,9 +67,4 @@ Every parameter inside `Homeos` is tagged with an explicit engineering verificat
 
 ## 🔬 Validation & Reproducibility Pipeline
 
-`Homeos` utilizes an automated verification gate that checks parameter maturity boundaries before allowing configurations to compile into active control loops. 
-
-The integration test suite (`tests/test_system_integration.py`) enforces deterministic fixtures and reproducible pseudo-random seed states (`numpy.random.default_rng(seed=42)`) to ensure numerical Simpson-rule convergence remains beneath a strict $\le 10^{-5}$ error ceiling relative to closed-form analytical solutions.
-
-The explicit state transformation map flows as a rigid matrix evaluation:
-$$\mathbf{x}(t) \in \mathbb{R}^{10} \xrightarrow{\text{Controller}} \mathbf{u}(t) \xrightarrow{\text{Solvers}} \mathbf{x}(t+1) \in \mathbb{R}^{10}$$
+`Homeos` utilizes an automated verification gate
